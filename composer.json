@@ -1,0 +1,31 @@
+{
+	"name": "sharkodlak/development",
+	"description": "PHP development utilities.",
+	"keywords": [
+		"development"
+	],
+	"homepage": "https://github.com/Sharkodlak/php-development",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Pavel Štětina",
+			"email": "github@shark.kom.cz",
+			"role": "Architect/Developer"
+		}
+	],
+	"require-dev": {
+		"pdepend/pdepend": "*",
+		"phploc/phploc": "*",
+		"phpmd/phpmd": "*",
+		"phpunit/phpunit": "*",
+		"sebastian/phpcpd": "*",
+		"sharkodlak/coding-style": "*",
+		"squizlabs/php_codesniffer": "*",
+		"tedivm/stash": "*",
+		"theseer/phpdox": "*"
+	},
+	"support": {
+		"issues": "https://github.com/sharkodlak/php-development/issues",
+		"wiki": "https://github.com/sharkodlak/php-development/wiki"
+	}
+}
