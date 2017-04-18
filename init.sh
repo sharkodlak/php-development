@@ -12,7 +12,8 @@ if [ ! -d /var/log/www ]; then
 fi
 
 cp -r /vagrant/vendor/sharkodlak/development/filesystem/var/www/* /var/www/
-chown -hR www-data:adm /var/www
+chown -hR www-data:adm /var/www /var/log/www /var/log/php7.1-fpm.log
+chmod -R 640 /var/log/www/ /var/log/php7.1-fpm.log
 
 HASH=$(sha256sum /etc/logrotate.d/php7.1-fpm | cut -d' ' -f1)
 if [ "31151b05207fe1cc87583ec8a7d2ffafdbbbebe03fe2f36c2b52904341583881" != "$HASH" ]; then
@@ -20,7 +21,7 @@ if [ "31151b05207fe1cc87583ec8a7d2ffafdbbbebe03fe2f36c2b52904341583881" != "$HAS
 fi
 
 HASH=$(sha256sum /etc/php/7.1/fpm/pool.d/www.conf | cut -d' ' -f1)
-if [ "e16d2b414516061f6d6433041f5a854c03ba60929af65c0ae12a2b3880f75450" != "$HASH" ]; then
+if [ "5edb1d606d70d3fb1267507bb8943917a9008cd0bd3013005c9144992761581e" != "$HASH" ]; then
 	patch -b /etc/php/7.1/fpm/pool.d/www.conf < /vagrant/vendor/sharkodlak/development/filesystem/etc/php/7.1/fpm/pool.d/www.conf.patch
 fi
 
@@ -28,3 +29,5 @@ HASH=$(sha256sum /etc/nginx/sites-available/default | cut -d' ' -f1)
 if [ "3b12ca1e6c37e2bdc4081d9bc948159f170b20acbf9996a93ab7abe9748cf8e2" != "$HASH" ]; then
 	cp /vagrant/vendor/sharkodlak/development/filesystem/etc/nginx/sites-available/default /etc/nginx/sites-available/default
 fi
+
+apt-get install -y postgresql php-pgsql php-xdebug
