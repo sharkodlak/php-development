@@ -1,0 +1,11 @@
+--- /etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 00:34:27.948948585 +0100
++++ /srv/salt/filesystem/etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 00:33:35.680603501 +0100
+@@ -87,7 +87,7 @@
+ # TYPE  DATABASE        USER            ADDRESS                 METHOD
+ 
+ # "local" is for Unix domain socket connections only
+-local   all             all                                     peer
++local   all             all                                     trust
+ # IPv4 local connections:
+ host    all             all             127.0.0.1/32            md5
+ # IPv6 local connections:
