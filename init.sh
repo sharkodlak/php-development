@@ -1,20 +1,28 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. "$DIR/ini.sh" # load INI functions
+
 function fileHash {
 	sha256sum $1 | cut -d' ' -f1
 }
 
 function patchFile {
-	if [ -z $3 ]; then
+	if [ -z $4 ]; then
 		local source="$1.patch"
 	else
-		local source="$(dirname "$1")/$3"
+		local source="$(dirname "$1")/$4"
 	fi
 	local hash=$(fileHash $1)
 	if [ "$2" == "$hash" ]; then
 		return 1
 	fi
-	patch -b "$1" < "/vagrant/vendor/sharkodlak/development/filesystem/$source"
+	if [[ -z "$3" || "$3" == 0 ]]; then
+		patch -b "$1" < "/vagrant/vendor/sharkodlak/development/filesystem/$source"
+	else
+		echo "Reverting patch..."
+		patch -R "$1" < "/vagrant/vendor/sharkodlak/development/filesystem/$source"
+	fi
 }
 
 function updateFile {
@@ -30,7 +38,12 @@ function updateFile {
 	cp "/vagrant/vendor/sharkodlak/development/filesystem/$source" "$1"
 }
 
+
 usermod -a -G adm vagrant
+if [ ! -e /etc/locale.gen ]; then
+	echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+	locale-gen
+fi
 
 if [ ! -e /etc/timezone ]; then
 	cp /vagrant/vendor/sharkodlak/development/filesystem/etc/timezone /etc/timezone
@@ -53,25 +66,30 @@ updateFile /etc/nginx/sites-available/default 3b12ca1e6c37e2bdc4081d9bc948159f17
 
 apt-get install -y postgresql php-pgsql php-xdebug
 
-# PostgreSQL listen on all interfaces
-patchFile /etc/postgresql/9.4/main/postgresql.conf 0560ef2b96e5e2ded5e4152f5fa8c3eca78058148cae105165ac0505d254f5a0
-if [ $? = 0 ]; then
-	# PostgreSQL allow temporal access without password
-	patchFile /etc/postgresql/9.4/main/pg_hba.conf 0560ef2b96e5e2ded5e4152f5fa8c3eca78058148cae105165ac0505d254f5a0 pg_hba.conf.trust.patch
+parseIniFile provision/.private/postgres.ini
+commonUserIndex=$(getIniSectionIndex commonUser)
 
-	service postgresql reload
+if [[ "$dbname" && "${username[commonUserIndex]}" ]]; then
+	echo PostgreSQL listen on all interfaces
+	patchFile /etc/postgresql/9.4/main/postgresql.conf 0560ef2b96e5e2ded5e4152f5fa8c3eca78058148cae105165ac0505d254f5a0
+	if [ $? ]; then
+		echo PostgreSQL allow temporal access without password
+		patchFile /etc/postgresql/9.4/main/pg_hba.conf 9b51618284f9c31498b93c6edc355391a05ac44ac846a5c76ca529f0b2b856ec
+		service postgresql reload
 
-	psql -c "CREATE ROLE 'commonUsers';"
-	read -p "Database name: " dbname
-	psql -c "CREATE DATABASE '$dbname' OWNER 'commonUsers' ENCODING 'UTF8';"
-	psql -c "CREATE ROLE 'powerUsers' CREATEDB CREATEROLE REPLICATION IN ROLE 'commonUsers';"
-	read -p 'PostgreSQL common user (read only access) username: ' username
-	read -sp 'Password: ' password
-	psql -c "CREATE ROLE '$username' LOGIN ENCRYPTED PASSWORD '$password' IN ROLE 'commonUsers';"
-	echo "pgsql:host=localhost;dbname=$dbname;user=$username;password=$password" > "/etc/postgresql/9.4/main/connect.$dbname.pgsql"
+		echo Create database and users
+		psql -U postgres -c "CREATE ROLE commonUsers;"
+		psql -U postgres -c "CREATE DATABASE $dbname OWNER commonUsers ENCODING 'UTF8';"
+		psql -U postgres -c "CREATE ROLE powerUsers CREATEDB CREATEROLE REPLICATION IN ROLE commonUsers;"
+		psql -U postgres -c "CREATE ROLE ${username[commonUserIndex]} LOGIN ENCRYPTED PASSWORD '${password[commonUserIndex]}' IN ROLE commonUsers;"
 
-	# PostgreSQL allow only password access
-	patchFile /etc/postgresql/9.4/main/pg_hba.conf 0560ef2b96e5e2ded5e4152f5fa8c3eca78058148cae105165ac0505d254f5a0
+		dbConnectFile="/etc/postgresql/connect.$dbname.pgsql"
+		echo "pgsql:host=localhost;dbname=$dbname;user=${username[commonUserIndex]};password=${password[commonUserIndex]}" > $dbConnectFile
+		chown www-data:adm $dbConnectFile
+		chmod 0640 $dbConnectFile
 
-	service postgresql reload
+		# PostgreSQL allow only password access
+		patchFile /etc/postgresql/9.4/main/pg_hba.conf 5c49a57dd58d76d6c33bdb788cb39ee377d2329df27b7469cea505355ba9d5a3 -R
+		service postgresql reload
+	fi
 fi

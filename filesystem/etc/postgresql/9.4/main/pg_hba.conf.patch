@@ -1,27 +1,10 @@
---- /etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 01:37:51.908855959 +0100
-+++ /srv/salt/filesystem/etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 01:33:20.701275572 +0100
-@@ -82,18 +82,20 @@
+--- /etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 00:34:27.948948585 +0100
++++ /etc/postgresql/9.4/main/pg_hba.conf	2015-12-31 00:33:35.680603501 +0100
+@@ -82,7 +82,7 @@
  # maintenance (custom daily cronjobs, replication, and similar tasks).
  #
  # Database administrative login by Unix domain socket
 -local   all             postgres                                peer
-+local   all             postgres                                md5
- 
++local   all             postgres                                trust
+
  # TYPE  DATABASE        USER            ADDRESS                 METHOD
- 
- # "local" is for Unix domain socket connections only
--local   all             all                                     trust
-+local   all             all                                     md5
- # IPv4 local connections:
--host    all             all             127.0.0.1/32            md5
-+#host    all             all             127.0.0.1/32            md5
- # IPv6 local connections:
--host    all             all             ::1/128                 md5
-+#host    all             all             ::1/128                 md5
- # Allow replication connections from localhost, by a user with the
- # replication privilege.
- #local   replication     postgres                                peer
- #host    replication     postgres        127.0.0.1/32            md5
- #host    replication     postgres        ::1/128                 md5
-+
-+host all all all md5
