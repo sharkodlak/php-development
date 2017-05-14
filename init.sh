@@ -60,10 +60,6 @@ if updateFile /etc/timezone $(fileHash  /vagrant/vendor/sharkodlak/development/f
 	dpkg-reconfigure --frontend noninteractive tzdata
 fi
 
-if [ ! -d /var/log/www ]; then
-	mkdir --mode=774 /var/log/www
-fi
-
 if [ ! -L /var/www ]; then
 	echo Droping /var/www and linking it to /vagrant/src
 	rm -rf /var/www
@@ -71,8 +67,16 @@ if [ ! -L /var/www ]; then
 fi
 
 cp -r /vagrant/vendor/sharkodlak/development/filesystem/var/www/* /var/www/
+
+if [ ! -d /var/log/www ]; then
+	echo Creating /var/log/www
+	mkdir --mode=774 /var/log/www
+fi
+
+touch /var/log/www/access.log /var/log/www/error.log /var/log/www/slow.log
 chown -hR www-data:adm /var/www /var/log/www /var/log/php7.1-fpm.log
-chmod -R 640 /var/log/www/ /var/log/php7.1-fpm.log
+chmod -R 751 /var/log/www/
+chmod 640 /var/log/php7.1-fpm.log
 
 updateFile /etc/logrotate.d/php7.1-fpm 31151b05207fe1cc87583ec8a7d2ffafdbbbebe03fe2f36c2b52904341583881
 patchFile /etc/php/7.1/fpm/pool.d/www.conf 5edb1d606d70d3fb1267507bb8943917a9008cd0bd3013005c9144992761581e
@@ -85,7 +89,6 @@ apt-get install -y postgresql php-pgsql php-xdebug
 
 copyMissingFile provision/.private/postgres.ini
 parseIniFile provision/.private/postgres.ini
-commonUserIndex=$(getIniSectionIndex commonUser)
 
 if [[ "$dbname" && "${username[$commonUserIndex]}" ]]; then
 	echo PostgreSQL listen on all interfaces
@@ -96,12 +99,17 @@ if [[ "$dbname" && "${username[$commonUserIndex]}" ]]; then
 		service postgresql reload
 
 		echo Create database and users
+		commonUserIndex=$(getIniSectionIndex commonUser)
+		powerUserIndex=$(getIniSectionIndex powerUser)
 		psql -U postgres -c "CREATE ROLE commonUsers;"
-		psql -U postgres -c "CREATE DATABASE $dbname OWNER commonUsers ENCODING 'UTF8';"
 		psql -U postgres -c "CREATE ROLE powerUsers CREATEDB CREATEROLE REPLICATION IN ROLE commonUsers;"
+		psql -U postgres -c "CREATE DATABASE $dbname OWNER powerUsers ENCODING 'UTF8';"
+		psql -U postgres -c "CREATE ROLE ${username[$powerUserIndex]} LOGIN ENCRYPTED PASSWORD '${password[$powerUserIndex]}' IN ROLE powerUsers;"
 		psql -U postgres -c "CREATE ROLE ${username[$commonUserIndex]} LOGIN ENCRYPTED PASSWORD '${password[$commonUserIndex]}' IN ROLE commonUsers;"
+		psql -U postgres -d "$dbname" -c "SET ROLE ${username[$powerUserIndex]}; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${username[$commonUserIndex]};"
 
-		dbConnectFile="/etc/postgresql/connect.$dbname.pgsql"
+		mkdir -p -m755 "/etc/webconf/$dbname" && chown -R www-data:adm "/etc/webconf"
+		dbConnectFile="/etc/webconf/$dbname/connect.pgsql"
 		echo "pgsql:host=localhost;dbname=$dbname;user=${username[$commonUserIndex]};password=${password[$commonUserIndex]}" > $dbConnectFile
 		chown www-data:adm $dbConnectFile
 		chmod 0640 $dbConnectFile
