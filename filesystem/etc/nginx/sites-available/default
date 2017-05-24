@@ -5,7 +5,7 @@ server {
 	#listen [::]:443 ssl default_server;
 	#include snippets/snakeoil.conf;
 
-	server_name ~^(www\.)?(?<domain>.+?)\.dev$;
+	server_name ~^(www\.)?(?<domain>.+?)\.localhost$;
 	root /var/www/;
 
 	# Add index.php to the list if you are using PHP

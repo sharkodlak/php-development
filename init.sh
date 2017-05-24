@@ -61,9 +61,9 @@ if updateFile /etc/timezone $(fileHash  /vagrant/vendor/sharkodlak/development/f
 fi
 
 if [ ! -L /var/www ]; then
-	echo Droping /var/www and linking it to /vagrant/src
+	echo Droping /var/www and linking it to /vagrant/src/www
 	rm -rf /var/www
-	ln -sT /vagrant/src/ /var/www
+	ln -sT /vagrant/src/www/ /var/www
 fi
 
 cp -r /vagrant/vendor/sharkodlak/development/filesystem/var/www/* /var/www/
@@ -85,7 +85,7 @@ service php7.1-fpm reload
 updateFile /etc/nginx/sites-available/default 3b12ca1e6c37e2bdc4081d9bc948159f170b20acbf9996a93ab7abe9748cf8e2
 service nginx reload
 
-apt-get install -y postgresql php-pgsql php-xdebug
+apt-get install -y postgresql php7.1-cli php-pgsql php-xdebug
 
 copyMissingFile provision/.private/postgres.ini
 parseIniFile provision/.private/postgres.ini
