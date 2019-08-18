@@ -1,4 +1,4 @@
-/var/log/php7.1-fpm.log /var/log/www/*.log {
+/var/log/php7.3-fpm.log /var/log/www/*.log {
 	su www-data adm
 	rotate 12
 	weekly
@@ -9,6 +9,6 @@
 	create 0640 www-data adm
 	sharedscripts
 	postrotate
-		/usr/lib/php/php7.1-fpm-reopenlogs
+		/usr/lib/php/php7.3-fpm-reopenlogs
 	endscript
 }
