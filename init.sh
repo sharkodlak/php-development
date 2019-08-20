@@ -117,8 +117,10 @@ if [[ "$dbname" && "${username[$commonUserIndex]}" ]]; then
 		mkdir -p -m755 "/etc/webconf/$dbname" && chown -R www-data:adm "/etc/webconf"
 		dbConnectFile="/etc/webconf/$dbname/connect.pgsql"
 		echo "pgsql:host=localhost;dbname=$dbname;user=${username[$commonUserIndex]};password=${password[$commonUserIndex]}" > $dbConnectFile
-		chown www-data:adm $dbConnectFile
-		chmod 0640 $dbConnectFile
+		dbPowerUserConnectFile="/etc/webconf/$dbname/connect.powerUser.pgsql"
+		echo "pgsql:host=localhost;dbname=$dbname;user=${username[$powerUserIndex]};password=${password[$powerUserIndex]}" > $dbPowerUserConnectFile
+		chown www-data:adm $dbConnectFile $dbPowerUserConnectFile
+		chmod 0640 $dbConnectFile $dbPowerUserConnectFile
 
 		echo Revert temporal access without password
 		patchFile /etc/postgresql/11/main/pg_hba.conf anyHash -R
