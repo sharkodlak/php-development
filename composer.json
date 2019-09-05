@@ -13,7 +13,7 @@
 			"role": "Architect/Developer"
 		}
 	],
-	"require-dev": {
+	"require": {
 		"pdepend/pdepend": "*",
 		"phploc/phploc": "*",
 		"phpmd/phpmd": "*",
