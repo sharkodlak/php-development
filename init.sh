@@ -91,7 +91,7 @@ service php7.3-fpm reload
 updateFile /etc/nginx/sites-available/default 3b12ca1e6c37e2bdc4081d9bc948159f170b20acbf9996a93ab7abe9748cf8e2
 service nginx reload
 
-apt-get install -y postgresql php7.3-cli php-pgsql php-xdebug
+apt-get install -y postgresql php7.3-cli php-pgsql php-xdebug php-xml
 
 copyMissingFile provision/.private/postgres.ini
 parseIniFile provision/.private/postgres.ini
