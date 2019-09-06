@@ -109,7 +109,7 @@ if [[ "$dbname" && "${username[$commonUserIndex]}" ]]; then
 		powerUserIndex=$(getIniSectionIndex powerUser)
 		psql -U postgres -c "CREATE ROLE commonUsers;"
 		psql -U postgres -c "CREATE ROLE powerUsers CREATEDB CREATEROLE REPLICATION IN ROLE commonUsers;"
-		psql -U postgres -c "CREATE DATABASE "$dbname" OWNER powerUsers ENCODING 'UTF8';"
+		psql -U postgres -c "CREATE DATABASE \"$dbname\" OWNER powerUsers ENCODING 'UTF8';"
 		psql -U postgres -c "CREATE ROLE ${username[$powerUserIndex]} LOGIN ENCRYPTED PASSWORD '${password[$powerUserIndex]}' IN ROLE powerUsers;"
 		psql -U postgres -c "CREATE ROLE ${username[$commonUserIndex]} LOGIN ENCRYPTED PASSWORD '${password[$commonUserIndex]}' IN ROLE commonUsers;"
 		psql -U postgres -d "$dbname" -c "SET ROLE ${username[$powerUserIndex]}; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${username[$commonUserIndex]};"
