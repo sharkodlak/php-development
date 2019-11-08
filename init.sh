@@ -54,7 +54,8 @@ function copyMissingFile {
 }
 
 
-usermod -a -G adm vagrant
+usermod -a -G adm vagrant # Allow vagrant user to see logs
+usermod -a -G vagrant www-data # Allow www-data to write in vagrant directories
 
 if updateFile /etc/locale.gen $(fileHash /vagrant/vendor/sharkodlak/development/filesystem/etc/locale.gen); then
 	locale-gen
