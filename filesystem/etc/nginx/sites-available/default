@@ -13,7 +13,7 @@ server {
 	fastcgi_read_timeout 2500;
 
 	location / {
-		try_files $uri $uri/ /index.php?_url=$uri&$args =404;
+		try_files $uri $uri/ /index.php?_url=$uri&$args;
 	}
 
 	location ~ \.php$ {
